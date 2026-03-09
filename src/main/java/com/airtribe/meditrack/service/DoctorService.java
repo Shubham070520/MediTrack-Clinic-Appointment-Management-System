@@ -1,7 +1,9 @@
 package com.airtribe.meditrack.service;
 
 import com.airtribe.meditrack.entity.Doctor;
+import com.airtribe.meditrack.entity.Patient;
 import com.airtribe.meditrack.enums.Specialization;
+import com.airtribe.meditrack.util.CSVUtil;
 import com.airtribe.meditrack.util.DataStore;
 
 import java.util.List;
@@ -53,5 +55,24 @@ public class DoctorService {
                 .filter(d -> d.getId().equals(id))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public void loadDoctorsFromCSV(String filePath) {
+
+        List<String> lines = CSVUtil.readFromCSV(filePath);
+
+        for (String line : lines) {
+
+            String[] parts = line.split(",");
+
+            Doctor doctor = new Doctor(
+                    parts[0], // id
+                    parts[1], // name
+                    Integer.parseInt(parts[2]), // age
+                    Specialization.valueOf(parts[3].toUpperCase()), // specialization
+                    Double.parseDouble(parts[4]) // fee
+            );
+            doctorStore.add(doctor.getId(), doctor);
+        }
     }
 }
