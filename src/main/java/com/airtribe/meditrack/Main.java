@@ -4,6 +4,7 @@ import com.airtribe.meditrack.entity.*;
 import com.airtribe.meditrack.enums.Specialization;
 import com.airtribe.meditrack.service.*;
 import com.airtribe.meditrack.util.IdGenerator;
+import com.airtribe.meditrack.constants.Constants;
 
 import java.util.Scanner;
 
@@ -20,7 +21,7 @@ public class Main {
         IdGenerator idGenerator = IdGenerator.getInstance();
 
         // Load patients from CSV on start
-        patientService.loadPatientsFromCSV("patients.csv");
+        patientService.loadPatientsFromCSV(Constants.PATIENT_FILE);
 
         while (true) {
 
@@ -83,6 +84,7 @@ public class Main {
                     );
 
                     doctorService.addDoctor(doctor);
+                    doctorService.loadDoctorsFromCSV(Constants.DOCTOR_FILE);
                     System.out.println("Doctor added successfully!");
                     break;
 
@@ -155,7 +157,28 @@ public class Main {
                     );
 
                     appointmentService.createAppointment(appointment);
+                    appointment.confirm();
                     System.out.println("Appointment created successfully!");
+
+                    // ===== Billing Section =====
+                    double baseAmount = doc.getConsultationFee();
+
+                    Bill bill = new Bill(baseAmount);
+                    double totalAmount = bill.calculateBill();
+                    double tax = totalAmount - baseAmount;
+
+                    BillSummary summary = new BillSummary(
+                            idGenerator.generateId(),
+                            baseAmount,
+                            tax
+                    );
+
+                    System.out.println("\n===== Bill Summary =====");
+                    System.out.println("Bill ID: " + summary.getBillId());
+                    System.out.println("Base Amount: " + summary.getAmount());
+                    System.out.println("Tax: " + summary.getTax());
+                    System.out.println("Total Amount: " + summary.getTotal());
+
                     break;
 
                 case 4:
@@ -187,8 +210,7 @@ public class Main {
                 case 9:
 
                     // Save patients before exiting
-                    patientService.savePatientsToCSV("1" +
-                            "patients.csv");
+                    patientService.savePatientsToCSV("patients.csv");
 
                     System.out.println("Exiting MediTrack...");
                     System.exit(0);
